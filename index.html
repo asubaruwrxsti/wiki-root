@@ -4,171 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wikipedia Link Crawler</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
         * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --bg: #f8f9fa;
-            --surface: #ffffff;
-            --text: #202122;
-            --text-muted: #54595d;
-            --accent: #3366cc;
-            --border: #a2a9b1;
-            --success: #14866d;
-            --error: #d33;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Lato, Helvetica, Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            padding: 20px;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
+            min-height: 100vh;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 40px;
+        .glass-strong {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
 
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            letter-spacing: -0.02em;
-        }
-
-        .subtitle {
-            color: var(--text-muted);
-            font-size: 1rem;
-        }
-
-        .controls {
-            background: var(--surface);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 30px;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid var(--border);
-            border-radius: 6px;
-            font-size: 1rem;
-            font-family: inherit;
-            transition: border-color 0.2s;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn:hover:not(:disabled) {
-            background: #2952a3;
-            transform: translateY(-1px);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .status {
-            background: var(--surface);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .status.active {
-            display: block;
-        }
-
-        .status-text {
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--accent);
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: #e8eaed;
-            border-radius: 3px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--accent);
-            width: 0%;
-            transition: width 0.3s;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .chain {
-            background: var(--surface);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .chain-item {
-            padding: 16px 20px;
-            margin-bottom: 12px;
-            background: var(--bg);
-            border-radius: 8px;
-            border-left: 4px solid var(--accent);
-            transition: all 0.3s;
-            animation: fadeInSlide 0.5s ease-out backwards;
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .glass-light {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         @keyframes fadeInSlide {
@@ -182,246 +51,986 @@
             }
         }
 
-        .chain-item::before {
-            content: attr(data-index);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 32px;
-            height: 32px;
-            background: var(--accent);
-            color: white;
-            border-radius: 50%;
-            font-size: 0.85rem;
-            font-weight: 700;
-            flex-shrink: 0;
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
-        .chain-item.current {
-            background: linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%);
-            border-left-color: var(--accent);
-            box-shadow: 0 4px 12px rgba(51, 102, 204, 0.15);
-            transform: scale(1.02);
+        @keyframes pulse-ring {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+            }
+            50% { 
+                box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+            }
+        }
+
+        .chain-item {
+            animation: fadeInSlide 0.4s ease-out backwards;
         }
 
         .chain-item.current::before {
             animation: pulse-ring 1.5s ease-in-out infinite;
         }
 
-        @keyframes pulse-ring {
-            0%, 100% { 
-                box-shadow: 0 0 0 0 rgba(51, 102, 204, 0.4);
-            }
-            50% { 
-                box-shadow: 0 0 0 8px rgba(51, 102, 204, 0);
-            }
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .chain-item.final {
-            border-left-color: var(--success);
-            background: linear-gradient(135deg, #e6f4f1 0%, #f0f8f4 100%);
-            box-shadow: 0 4px 12px rgba(20, 134, 109, 0.15);
+        .btn-primary:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         }
 
-        .chain-item.final::before {
-            background: var(--success);
+        .btn-primary:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        input, select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        select option {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-fill {
+            background: rgba(255, 255, 255, 0.3);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        dialog {
+            background: rgba(20, 20, 20, 0.98);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .bullet-list {
+            position: relative;
+            padding-left: 0;
+        }
+
+        .bullet-list li {
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .bullet-list li::before {
+            content: "→";
+            position: absolute;
+            left: 0.5rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: bold;
+        }
+
+        .bullet-list li:last-child.final::before {
             content: "✓";
-            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.9);
         }
 
-        .chain-content {
-            flex: 1;
+        .dialog-content h3 {
+            color: white;
         }
 
-        .chain-item a {
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 1rem;
-            display: block;
-            transition: color 0.2s;
+        .dialog-content p {
+            color: rgba(255, 255, 255, 0.8);
         }
 
-        .chain-item a:hover {
-            color: #2952a3;
-            text-decoration: underline;
+        .dialog-content h4 {
+            color: rgba(255, 255, 255, 0.9);
         }
 
-        .chain-arrow {
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 1.2rem;
-            margin: 8px 0;
-            animation: fadeIn 0.4s ease-out backwards;
+        .dialog-content ul li {
+            color: rgba(255, 255, 255, 0.7);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .error {
-            background: #fee;
-            color: var(--error);
-            padding: 16px;
-            border-radius: 8px;
-            margin-top: 10px;
-            border-left: 4px solid var(--error);
-        }
-
-        .info {
-            background: #e8f4f8;
-            padding: 16px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-
-        .summary {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e8eaed 100%);
-            padding: 24px;
-            border-radius: 12px;
-            margin-top: 20px;
-            text-align: center;
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        .summary h3 {
-            font-size: 1.3rem;
-            margin-bottom: 16px;
-            color: var(--text);
-        }
-
-        .stats {
-            display: flex;
-            gap: 24px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .stat {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--accent);
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .warning {
-            background: #fff3cd;
-            color: #856404;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid #ffc107;
+        .dialog-content .font-semibold {
+            color: rgba(255, 255, 255, 0.9);
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Wikipedia Link Crawler</h1>
-            <p class="subtitle">Follow the first link until you reach a dead end</p>
+<body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-8 text-white">
+            <h1 class="text-5xl md:text-6xl font-bold mb-3 drop-shadow-lg">Wikipedia Crawler</h1>
+            <p class="text-xl opacity-70">Follow the first link to find the root</p>
         </header>
 
-        <div class="warning">
-            <strong>✅ Using Wikipedia REST API:</strong> This tool now uses Wikipedia's official REST API which has proper CORS support and should work reliably on GitHub Pages and modern browsers.
-        </div>
+        <!-- Controls -->
+        <div class="glass rounded-2xl p-6 md:p-8 mb-6">
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-white font-semibold mb-2 text-sm opacity-80">Wikipedia Language</label>
+                    <select id="language" class="w-full px-4 py-3 rounded-xl">
+                        <option value="en">English (en)</option>
+                        <option value="de">Deutsch (de)</option>
+                        <option value="fr">Français (fr)</option>
+                        <option value="es">Español (es)</option>
+                        <option value="it">Italiano (it)</option>
+                        <option value="ja">日本語 (ja)</option>
+                        <option value="zh">中文 (zh)</option>
+                        <option value="ru">Русский (ru)</option>
+                        <option value="pt">Português (pt)</option>
+                        <option value="nl">Nederlands (nl)</option>
+                        <option value="pl">Polski (pl)</option>
+                        <option value="sv">Svenska (sv)</option>
+                        <option value="ar">العربية (ar)</option>
+                        <option value="uk">Українська (uk)</option>
+                        <option value="fa">فارسی (fa)</option>
+                        <option value="vi">Tiếng Việt (vi)</option>
+                        <option value="id">Bahasa Indonesia (id)</option>
+                        <option value="he">עברית (he)</option>
+                        <option value="ko">한국어 (ko)</option>
+                        <option value="cs">Čeština (cs)</option>
+                        <option value="fi">Suomi (fi)</option>
+                        <option value="hu">Magyar (hu)</option>
+                        <option value="no">Norsk (no)</option>
+                        <option value="da">Dansk (da)</option>
+                        <option value="ro">Română (ro)</option>
+                        <option value="tr">Türkçe (tr)</option>
+                        <option value="el">Ελληνικά (el)</option>
+                        <option value="bg">Български (bg)</option>
+                        <option value="ca">Català (ca)</option>
+                        <option value="sr">Српски (sr)</option>
+                        <option value="ms">Bahasa Melayu (ms)</option>
+                        <option value="th">ไทย (th)</option>
+                        <option value="hi">हिन्दी (hi)</option>
+                        <option value="bn">বাংলা (bn)</option>
+                        <option value="sk">Slovenčina (sk)</option>
+                        <option value="eu">Euskara (eu)</option>
+                        <option value="sl">Slovenščina (sl)</option>
+                        <option value="hr">Hrvatski (hr)</option>
+                        <option value="lt">Lietuvių (lt)</option>
+                        <option value="et">Eesti (et)</option>
+                        <option value="la">Latina (la)</option>
+                        <option value="sq">Shqip (sq)</option>
+                        <option value="simple">Simple English (simple)</option>
+                    </select>
+                </div>
 
-        <div class="controls">
-            <div class="input-group">
-                <label for="language">Wikipedia Language</label>
-                <select id="language">
-                    <option value="en">English (en)</option>
-                    <option value="de">Deutsch (de)</option>
-                    <option value="fr">Français (fr)</option>
-                    <option value="es">Español (es)</option>
-                    <option value="it">Italiano (it)</option>
-                    <option value="ja">日本語 (ja)</option>
-                    <option value="zh">中文 (zh)</option>
-                    <option value="ru">Русский (ru)</option>
-                    <option value="pt">Português (pt)</option>
-                    <option value="nl">Nederlands (nl)</option>
-                    <option value="pl">Polski (pl)</option>
-                    <option value="sv">Svenska (sv)</option>
-                    <option value="ar">العربية (ar)</option>
-                    <option value="uk">Українська (uk)</option>
-                    <option value="fa">فارسی (fa)</option>
-                    <option value="vi">Tiếng Việt (vi)</option>
-                    <option value="id">Bahasa Indonesia (id)</option>
-                    <option value="he">עברית (he)</option>
-                    <option value="ko">한국어 (ko)</option>
-                    <option value="cs">Čeština (cs)</option>
-                    <option value="fi">Suomi (fi)</option>
-                    <option value="hu">Magyar (hu)</option>
-                    <option value="no">Norsk (no)</option>
-                    <option value="da">Dansk (da)</option>
-                    <option value="ro">Română (ro)</option>
-                    <option value="tr">Türkçe (tr)</option>
-                    <option value="el">Ελληνικά (el)</option>
-                    <option value="bg">Български (bg)</option>
-                    <option value="ca">Català (ca)</option>
-                    <option value="sr">Српски (sr)</option>
-                    <option value="ms">Bahasa Melayu (ms)</option>
-                    <option value="th">ไทย (th)</option>
-                    <option value="hi">हिन्दी (hi)</option>
-                    <option value="bn">বাংলা (bn)</option>
-                    <option value="sk">Slovenčina (sk)</option>
-                    <option value="eu">Euskara (eu)</option>
-                    <option value="sl">Slovenščina (sl)</option>
-                    <option value="hr">Hrvatski (hr)</option>
-                    <option value="lt">Lietuvių (lt)</option>
-                    <option value="et">Eesti (et)</option>
-                    <option value="la">Latina (la)</option>
-                    <option value="sq">Shqip (sq)</option>
-                    <option value="simple">Simple English (simple)</option>
-                </select>
+                <div>
+                    <label class="block text-white font-semibold mb-2 text-sm opacity-80">Starting Page</label>
+                    <input type="text" id="startPage" placeholder="e.g., Philosophy, Berlin, Science" 
+                           class="w-full px-4 py-3 rounded-xl" required>
+                </div>
             </div>
 
-            <div class="input-group">
-                <label for="startPage">Starting Page (required)</label>
-                <input type="text" id="startPage" placeholder="e.g., Philosophy, Berlin, Science" required>
+            <div class="flex gap-3">
+                <button id="startBtn" class="flex-1 btn-primary text-white font-semibold py-3 px-6 rounded-xl">
+                    Start Crawling
+                </button>
+                <button id="infoBtn" class="glass-light text-white font-semibold py-3 px-6 rounded-xl hover:bg-white hover:bg-opacity-10 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div id="status" class="glass rounded-2xl p-6 mb-6 hidden">
+            <div id="statusText" class="text-white font-semibold mb-3 opacity-90">Crawling...</div>
+            <div class="progress-bar h-2 rounded-full overflow-hidden mb-3">
+                <div class="progress-fill h-full w-0"></div>
+            </div>
+            <div id="currentPage" class="text-white text-sm opacity-70"></div>
+        </div>
+
+        <!-- Chain -->
+        <div id="chain" class="glass rounded-2xl p-6 md:p-8 hidden">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-white">Link Chain</h2>
+                <div class="text-white text-sm opacity-70" id="chainCount"></div>
+            </div>
+            
+            <div id="chainCollapsed" class="hidden">
+                <div class="text-white text-sm opacity-60 mb-3">
+                    Showing last 5 of <span id="totalCount"></span> links
+                </div>
             </div>
 
-            <button class="btn" id="startBtn">Start Crawling</button>
-        </div>
+            <ul id="chainItems" class="bullet-list text-white mb-4"></ul>
 
-        <div class="status" id="status">
-            <div class="status-text" id="statusText">Crawling...</div>
-            <div class="progress-bar">
-                <div class="progress-fill"></div>
-            </div>
-            <div id="currentPage"></div>
-        </div>
+            <button id="expandBtn" class="w-full glass-light text-white font-semibold py-3 px-6 rounded-xl hover:bg-white hover:bg-opacity-10 transition hidden">
+                Show All Links
+            </button>
 
-        <div class="chain" id="chain" style="display: none;">
-            <h2 style="margin-bottom: 20px;">Link Chain</h2>
-            <div id="chainItems"></div>
-            <div id="summary" style="display: none;"></div>
-        </div>
-
-        <div class="info">
-            <strong>How it works:</strong> This tool starts from a Wikipedia page and follows the first valid link in the main content until it reaches a page with no outgoing links (a "dead end"). Valid links are those within the main article content, excluding parenthetical links, italicized text, and special pages.
-            <br><br>
-            <strong>Popular starting pages:</strong>
-            <ul style="margin-top: 10px; margin-left: 20px;">
-                <li><strong>English:</strong> Philosophy, Science, Mathematics, History</li>
-                <li><strong>Deutsch:</strong> Philosophie, Deutschland, Wissenschaft</li>
-                <li><strong>Français:</strong> Philosophie, France, Science</li>
-            </ul>
+            <div id="summary" class="hidden mt-6"></div>
         </div>
     </div>
+
+    <!-- Info Dialog -->
+    <dialog id="infoDialog" class="max-w-2xl p-0 rounded-2xl">
+        <div class="p-6 md:p-8 dialog-content">
+            <div class="flex items-start justify-between mb-6">
+                <h3 class="text-2xl font-bold">How It Works</h3>
+                <button id="closeDialog" class="text-white opacity-60 hover:opacity-100 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="prose prose-sm max-w-none">
+                <p class="mb-4">
+                    This tool starts from a Wikipedia page and follows the first valid link in the main content until it reaches a page with no outgoing links (a "dead end"). Valid links are those within the main article content, excluding parenthetical links, italicized text, and special pages.
+                </p>
+
+                <h4 class="text-lg font-semibold mt-6 mb-3">Popular Starting Pages</h4>
+                
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                        <p class="font-semibold mb-2">English</p>
+                        <ul class="text-sm space-y-1">
+                            <li>• Philosophy</li>
+                            <li>• Science</li>
+                            <li>• Mathematics</li>
+                            <li>• History</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="font-semibold mb-2">Deutsch</p>
+                        <ul class="text-sm space-y-1">
+                            <li>• Philosophie</li>
+                            <li>• Deutschland</li>
+                            <li>• Wissenschaft</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="font-semibold mb-2">Français</p>
+                        <ul class="text-sm space-y-1">
+                            <li>• Philosophie</li>
+                            <li>• France</li>
+                            <li>• Science</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-6 p-4 glass-strong rounded-lg">
+                    <p class="text-sm opacity-80">
+                        <strong>💡 Tip:</strong> Many Wikipedia pages eventually lead to "Philosophy" when following the first link rule!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <script>
+        const MAX_HOPS = 100;
+        const COLLAPSED_SHOW = 5;
+        let isExpanded = false;
+
+        class WikiCrawler {
+            constructor(language) {
+                this.language = language;
+                this.visited = new Set();
+                this.chain = [];
+            }
+
+            getWikiUrl(title) {
+                return `https://${this.language}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`;
+            }
+
+            getRestApiUrl(title) {
+                return `https://${this.language}.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(title.replace(/ /g, '_'))}`;
+            }
+
+            async fetchPage(title) {
+                try {
+                    const response = await fetch(this.getRestApiUrl(title), {
+                        headers: {
+                            'Api-User-Agent': 'WikiCrawler/1.0 (Educational Tool)'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('Page not found');
+                        }
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const html = await response.text();
+                    return html;
+                } catch (error) {
+                    console.error(`Failed to fetch ${title}:`, error);
+                    throw error;
+                }
+            }
+
+            parseHtml(html) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const content = doc.querySelector('body');
+                if (!content) {
+                    console.log('No content found in page');
+                    return null;
+                }
+
+                const unwantedSelectors = [
+                    '[rel="mw:PageProp/Category"]',
+                    'link',
+                    'meta',
+                    'style',
+                    'script',
+                    'table',
+                    'figure',
+                    '[typeof="mw:Extension/references"]',
+                    '.mw-ref',
+                    'sup.reference',
+                    '[role="note"]'
+                ];
+                
+                unwantedSelectors.forEach(selector => {
+                    content.querySelectorAll(selector).forEach(el => el.remove());
+                });
+
+                const paragraphs = Array.from(content.querySelectorAll('p'));
+                
+                for (const p of paragraphs) {
+                    const textContent = p.textContent.trim();
+                    if (textContent.length < 20) continue;
+
+                    const links = Array.from(p.querySelectorAll('a[rel="mw:WikiLink"]'));
+                    
+                    for (const link of links) {
+                        let href = link.getAttribute('href');
+                        
+                        if (!href || !href.startsWith('./')) continue;
+                        
+                        href = href.substring(2);
+                        
+                        if (href.includes('#')) {
+                            href = href.substring(0, href.indexOf('#'));
+                        }
+                        
+                        const title = decodeURIComponent(href).replace(/_/g, ' ');
+                        
+                        if (title.match(/^(File|Image|Special|Wikipedia|Help|Template|Category|Portal|Talk|User|Project|Module|MediaWiki|TimedText):/i)) {
+                            continue;
+                        }
+                        
+                        if (title.includes(':')) continue;
+                        if (title.length < 2) continue;
+                        if (link.closest('i') || link.closest('em')) continue;
+
+                        const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT, null);
+                        let textBeforeLink = '';
+                        let foundLink = false;
+                        
+                        while (walker.nextNode()) {
+                            const node = walker.currentNode;
+                            if (link.contains(node) || link === node.parentElement) {
+                                foundLink = true;
+                                break;
+                            }
+                            textBeforeLink += node.textContent;
+                        }
+
+                        if (foundLink) {
+                            const openParens = (textBeforeLink.match(/\(/g) || []).length;
+                            const closeParens = (textBeforeLink.match(/\)/g) || []).length;
+                            if (openParens > closeParens) continue;
+                        }
+
+                        console.log(`Found valid link: ${title}`);
+                        return title;
+                    }
+                }
+
+                return null;
+            }
+
+            async crawl(startTitle, onUpdate) {
+                let currentTitle = startTitle;
+                this.chain = [];
+                this.visited.clear();
+
+                while (currentTitle && this.chain.length < MAX_HOPS) {
+                    if (this.visited.has(currentTitle.toLowerCase())) {
+                        onUpdate({ 
+                            type: 'error', 
+                            message: `Loop detected at "${currentTitle}"` 
+                        });
+                        break;
+                    }
+
+                    this.visited.add(currentTitle.toLowerCase());
+                    this.chain.push({ title: currentTitle, url: this.getWikiUrl(currentTitle) });
+
+                    onUpdate({ 
+                        type: 'progress', 
+                        current: currentTitle, 
+                        chain: [...this.chain] 
+                    });
+
+                    try {
+                        const html = await this.fetchPage(currentTitle);
+                        const nextTitle = this.parseHtml(html);
+
+                        console.log(`From "${currentTitle}" -> found: "${nextTitle}"`);
+
+                        if (!nextTitle) {
+                            onUpdate({ 
+                                type: 'complete', 
+                                chain: this.chain,
+                                message: `✓ Reached a dead end at "${currentTitle}"` 
+                            });
+                            break;
+                        }
+
+                        currentTitle = nextTitle;
+                        await new Promise(resolve => setTimeout(resolve, 500));
+
+                    } catch (error) {
+                        console.error('Crawl error:', error);
+                        onUpdate({ 
+                            type: 'error', 
+                            message: `Error fetching "${currentTitle}": ${error.message}` 
+                        });
+                        break;
+                    }
+                }
+
+                if (this.chain.length >= MAX_HOPS) {
+                    onUpdate({ 
+                        type: 'complete', 
+                        chain: this.chain,
+                        message: `Stopped after ${MAX_HOPS} hops` 
+                    });
+                }
+            }
+        }
+
+        // UI Elements
+        const startBtn = document.getElementById('startBtn');
+        const languageSelect = document.getElementById('language');
+        const startPageInput = document.getElementById('startPage');
+        const status = document.getElementById('status');
+        const statusText = document.getElementById('statusText');
+        const currentPage = document.getElementById('currentPage');
+        const chainDiv = document.getElementById('chain');
+        const chainItems = document.getElementById('chainItems');
+        const chainCount = document.getElementById('chainCount');
+        const expandBtn = document.getElementById('expandBtn');
+        const chainCollapsed = document.getElementById('chainCollapsed');
+        const totalCount = document.getElementById('totalCount');
+        const infoBtn = document.getElementById('infoBtn');
+        const infoDialog = document.getElementById('infoDialog');
+        const closeDialog = document.getElementById('closeDialog');
+
+        let fullChain = [];
+
+        function renderChain(chain, collapsed = false) {
+            const itemsToShow = collapsed ? chain.slice(-COLLAPSED_SHOW) : chain;
+            const isFinal = !collapsed;
+            
+            const items = itemsToShow.map((item, index) => {
+                const actualIndex = collapsed ? chain.length - COLLAPSED_SHOW + index : index;
+                const isCurrent = actualIndex === chain.length - 1 && !isFinal;
+                const isLast = actualIndex === chain.length - 1 && isFinal;
+                const delay = Math.min(index * 0.05, 2);
+                
+                return `
+                    <li class="chain-item ${isCurrent ? 'current' : ''} ${isLast ? 'final' : ''}" 
+                        style="animation-delay: ${delay}s">
+                        <a href="${item.url}" target="_blank" class="hover:underline opacity-90 hover:opacity-100 transition">
+                            ${item.title}
+                        </a>
+                    </li>
+                `;
+            }).join('');
+            
+            chainItems.innerHTML = items;
+            chainCount.textContent = `${chain.length} links`;
+            
+            if (collapsed && chain.length > COLLAPSED_SHOW) {
+                chainCollapsed.classList.remove('hidden');
+                totalCount.textContent = chain.length;
+                expandBtn.classList.remove('hidden');
+            } else {
+                chainCollapsed.classList.add('hidden');
+                expandBtn.classList.add('hidden');
+            }
+        }
+
+        expandBtn.addEventListener('click', () => {
+            isExpanded = true;
+            renderChain(fullChain, false);
+            expandBtn.textContent = 'Collapse';
+            expandBtn.onclick = () => {
+                isExpanded = false;
+                renderChain(fullChain, true);
+                expandBtn.textContent = 'Show All Links';
+            };
+        });
+
+        infoBtn.addEventListener('click', () => {
+            infoDialog.showModal();
+        });
+
+        closeDialog.addEventListener('click', () => {
+            infoDialog.close();
+        });
+
+        infoDialog.addEventListener('click', (e) => {
+            if (e.target === infoDialog) {
+                infoDialog.close();
+            }
+        });
+
+        startBtn.addEventListener('click', async () => {
+            const language = languageSelect.value;
+            const startPage = startPageInput.value.trim();
+
+            if (!startPage) {
+                alert('Please enter a starting page name');
+                return;
+            }
+
+            startBtn.disabled = true;
+            status.classList.remove('hidden');
+            chainDiv.classList.add('hidden');
+            chainItems.innerHTML = '';
+            document.getElementById('summary').classList.add('hidden');
+            document.getElementById('summary').innerHTML = '';
+            statusText.textContent = 'Starting crawl...';
+            currentPage.innerHTML = '';
+            isExpanded = false;
+            fullChain = [];
+
+            const crawler = new WikiCrawler(language);
+
+            await crawler.crawl(startPage, (update) => {
+                if (update.type === 'progress') {
+                    statusText.textContent = `Crawling... (${update.chain.length} pages visited)`;
+                    currentPage.innerHTML = `Current: <strong>${update.current}</strong>`;
+                    
+                    chainDiv.classList.remove('hidden');
+                    fullChain = update.chain;
+                    renderChain(update.chain, !isExpanded && update.chain.length > COLLAPSED_SHOW);
+                    
+                    setTimeout(() => {
+                        chainItems.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 100);
+                    
+                } else if (update.type === 'complete') {
+                    status.classList.add('hidden');
+                    fullChain = update.chain;
+                    renderChain(update.chain, !isExpanded && update.chain.length > COLLAPSED_SHOW);
+
+                    const summaryDiv = document.getElementById('summary');
+                    summaryDiv.classList.remove('hidden');
+                    summaryDiv.innerHTML = `
+                        <div class="glass-strong rounded-xl p-6 text-center">
+                            <h3 class="text-2xl font-bold text-white mb-4">🎯 Journey Complete!</h3>
+                            <div class="grid grid-cols-3 gap-4 text-white">
+                                <div>
+                                    <div class="text-3xl font-bold opacity-90">${update.chain.length}</div>
+                                    <div class="text-sm opacity-60 uppercase tracking-wide">Total Hops</div>
+                                </div>
+                                <div>
+                                    <div class="text-lg font-semibold opacity-90">${update.chain[0].title}</div>
+                                    <div class="text-sm opacity-60 uppercase tracking-wide">Start</div>
+                                </div>
+                                <div>
+                                    <div class="text-lg font-semibold opacity-90">${update.chain[update.chain.length - 1].title}</div>
+                                    <div class="text-sm opacity-60 uppercase tracking-wide">End</div>
+                                </div>
+                            </div>
+                            <p class="mt-4 text-white opacity-70 text-sm">${update.message}</p>
+                        </div>
+                    `;
+                    
+                } else if (update.type === 'error') {
+                    currentPage.innerHTML = `<div class="glass-strong rounded-xl p-4 text-white mt-3 opacity-80">${update.message}</div>`;
+                    status.classList.add('hidden');
+                }
+            });
+
+            startBtn.disabled = false;
+        });
+    </script>
+</body>
+</html>
+
+    <script>
+        const MAX_HOPS = 100;
+        const COLLAPSED_SHOW = 5;
+        let isExpanded = false;
+
+        class WikiCrawler {
+            constructor(language) {
+                this.language = language;
+                this.visited = new Set();
+                this.chain = [];
+            }
+
+            getWikiUrl(title) {
+                return `https://${this.language}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`;
+            }
+
+            getRestApiUrl(title) {
+                return `https://${this.language}.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(title.replace(/ /g, '_'))}`;
+            }
+
+            async fetchPage(title) {
+                try {
+                    const response = await fetch(this.getRestApiUrl(title), {
+                        headers: {
+                            'Api-User-Agent': 'WikiCrawler/1.0 (Educational Tool)'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('Page not found');
+                        }
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const html = await response.text();
+                    return html;
+                } catch (error) {
+                    console.error(`Failed to fetch ${title}:`, error);
+                    throw error;
+                }
+            }
+
+            parseHtml(html) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const content = doc.querySelector('body');
+                if (!content) {
+                    console.log('No content found in page');
+                    return null;
+                }
+
+                const unwantedSelectors = [
+                    '[rel="mw:PageProp/Category"]',
+                    'link',
+                    'meta',
+                    'style',
+                    'script',
+                    'table',
+                    'figure',
+                    '[typeof="mw:Extension/references"]',
+                    '.mw-ref',
+                    'sup.reference',
+                    '[role="note"]'
+                ];
+                
+                unwantedSelectors.forEach(selector => {
+                    content.querySelectorAll(selector).forEach(el => el.remove());
+                });
+
+                const paragraphs = Array.from(content.querySelectorAll('p'));
+                
+                for (const p of paragraphs) {
+                    const textContent = p.textContent.trim();
+                    if (textContent.length < 20) continue;
+
+                    const links = Array.from(p.querySelectorAll('a[rel="mw:WikiLink"]'));
+                    
+                    for (const link of links) {
+                        let href = link.getAttribute('href');
+                        
+                        if (!href || !href.startsWith('./')) continue;
+                        
+                        href = href.substring(2);
+                        
+                        if (href.includes('#')) {
+                            href = href.substring(0, href.indexOf('#'));
+                        }
+                        
+                        const title = decodeURIComponent(href).replace(/_/g, ' ');
+                        
+                        if (title.match(/^(File|Image|Special|Wikipedia|Help|Template|Category|Portal|Talk|User|Project|Module|MediaWiki|TimedText):/i)) {
+                            continue;
+                        }
+                        
+                        if (title.includes(':')) continue;
+                        if (title.length < 2) continue;
+                        if (link.closest('i') || link.closest('em')) continue;
+
+                        const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT, null);
+                        let textBeforeLink = '';
+                        let foundLink = false;
+                        
+                        while (walker.nextNode()) {
+                            const node = walker.currentNode;
+                            if (link.contains(node) || link === node.parentElement) {
+                                foundLink = true;
+                                break;
+                            }
+                            textBeforeLink += node.textContent;
+                        }
+
+                        if (foundLink) {
+                            const openParens = (textBeforeLink.match(/\(/g) || []).length;
+                            const closeParens = (textBeforeLink.match(/\)/g) || []).length;
+                            if (openParens > closeParens) continue;
+                        }
+
+                        console.log(`Found valid link: ${title}`);
+                        return title;
+                    }
+                }
+
+                return null;
+            }
+
+            async crawl(startTitle, onUpdate) {
+                let currentTitle = startTitle;
+                this.chain = [];
+                this.visited.clear();
+
+                while (currentTitle && this.chain.length < MAX_HOPS) {
+                    if (this.visited.has(currentTitle.toLowerCase())) {
+                        onUpdate({ 
+                            type: 'error', 
+                            message: `Loop detected at "${currentTitle}"` 
+                        });
+                        break;
+                    }
+
+                    this.visited.add(currentTitle.toLowerCase());
+                    this.chain.push({ title: currentTitle, url: this.getWikiUrl(currentTitle) });
+
+                    onUpdate({ 
+                        type: 'progress', 
+                        current: currentTitle, 
+                        chain: [...this.chain] 
+                    });
+
+                    try {
+                        const html = await this.fetchPage(currentTitle);
+                        const nextTitle = this.parseHtml(html);
+
+                        console.log(`From "${currentTitle}" -> found: "${nextTitle}"`);
+
+                        if (!nextTitle) {
+                            onUpdate({ 
+                                type: 'complete', 
+                                chain: this.chain,
+                                message: `✓ Reached a dead end at "${currentTitle}"` 
+                            });
+                            break;
+                        }
+
+                        currentTitle = nextTitle;
+                        await new Promise(resolve => setTimeout(resolve, 500));
+
+                    } catch (error) {
+                        console.error('Crawl error:', error);
+                        onUpdate({ 
+                            type: 'error', 
+                            message: `Error fetching "${currentTitle}": ${error.message}` 
+                        });
+                        break;
+                    }
+                }
+
+                if (this.chain.length >= MAX_HOPS) {
+                    onUpdate({ 
+                        type: 'complete', 
+                        chain: this.chain,
+                        message: `Stopped after ${MAX_HOPS} hops` 
+                    });
+                }
+            }
+        }
+
+        // UI Elements
+        const startBtn = document.getElementById('startBtn');
+        const languageSelect = document.getElementById('language');
+        const startPageInput = document.getElementById('startPage');
+        const status = document.getElementById('status');
+        const statusText = document.getElementById('statusText');
+        const currentPage = document.getElementById('currentPage');
+        const chainDiv = document.getElementById('chain');
+        const chainItems = document.getElementById('chainItems');
+        const chainCount = document.getElementById('chainCount');
+        const expandBtn = document.getElementById('expandBtn');
+        const chainCollapsed = document.getElementById('chainCollapsed');
+        const totalCount = document.getElementById('totalCount');
+        const infoBtn = document.getElementById('infoBtn');
+        const infoDialog = document.getElementById('infoDialog');
+        const closeDialog = document.getElementById('closeDialog');
+
+        let fullChain = [];
+
+        function renderChain(chain, collapsed = false) {
+            const itemsToShow = collapsed ? chain.slice(-COLLAPSED_SHOW) : chain;
+            const isFinal = !collapsed;
+            
+            const items = itemsToShow.map((item, index) => {
+                const actualIndex = collapsed ? chain.length - COLLAPSED_SHOW + index : index;
+                const isCurrent = actualIndex === chain.length - 1 && !isFinal;
+                const isLast = actualIndex === chain.length - 1 && isFinal;
+                const delay = Math.min(index * 0.05, 2);
+                
+                return `
+                    <li class="chain-item ${isCurrent ? 'current' : ''} ${isLast ? 'final' : ''}" 
+                        style="animation-delay: ${delay}s">
+                        <a href="${item.url}" target="_blank" class="hover:underline text-white font-medium">
+                            ${item.title}
+                        </a>
+                    </li>
+                `;
+            }).join('');
+            
+            chainItems.innerHTML = items;
+            chainCount.textContent = `${chain.length} links`;
+            
+            if (collapsed && chain.length > COLLAPSED_SHOW) {
+                chainCollapsed.classList.remove('hidden');
+                totalCount.textContent = chain.length;
+                expandBtn.classList.remove('hidden');
+            } else {
+                chainCollapsed.classList.add('hidden');
+                expandBtn.classList.add('hidden');
+            }
+        }
+
+        expandBtn.addEventListener('click', () => {
+            isExpanded = true;
+            renderChain(fullChain, false);
+            expandBtn.textContent = 'Collapse';
+            expandBtn.onclick = () => {
+                isExpanded = false;
+                renderChain(fullChain, true);
+                expandBtn.textContent = 'Show All Links';
+            };
+        });
+
+        infoBtn.addEventListener('click', () => {
+            infoDialog.showModal();
+        });
+
+        closeDialog.addEventListener('click', () => {
+            infoDialog.close();
+        });
+
+        infoDialog.addEventListener('click', (e) => {
+            if (e.target === infoDialog) {
+                infoDialog.close();
+            }
+        });
+
+        startBtn.addEventListener('click', async () => {
+            const language = languageSelect.value;
+            const startPage = startPageInput.value.trim();
+
+            if (!startPage) {
+                alert('Please enter a starting page name');
+                return;
+            }
+
+            startBtn.disabled = true;
+            status.classList.remove('hidden');
+            chainDiv.classList.add('hidden');
+            chainItems.innerHTML = '';
+            document.getElementById('summary').classList.add('hidden');
+            document.getElementById('summary').innerHTML = '';
+            statusText.textContent = 'Starting crawl...';
+            currentPage.innerHTML = '';
+            isExpanded = false;
+            fullChain = [];
+
+            const crawler = new WikiCrawler(language);
+
+            await crawler.crawl(startPage, (update) => {
+                if (update.type === 'progress') {
+                    statusText.textContent = `Crawling... (${update.chain.length} pages visited)`;
+                    currentPage.innerHTML = `Current: <strong>${update.current}</strong>`;
+                    
+                    chainDiv.classList.remove('hidden');
+                    fullChain = update.chain;
+                    renderChain(update.chain, !isExpanded && update.chain.length > COLLAPSED_SHOW);
+                    
+                    setTimeout(() => {
+                        chainItems.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 100);
+                    
+                } else if (update.type === 'complete') {
+                    status.classList.add('hidden');
+                    fullChain = update.chain;
+                    renderChain(update.chain, !isExpanded && update.chain.length > COLLAPSED_SHOW);
+
+                    const summaryDiv = document.getElementById('summary');
+                    summaryDiv.classList.remove('hidden');
+                    summaryDiv.innerHTML = `
+                        <div class="glass-strong rounded-xl p-6 text-center">
+                            <h3 class="text-2xl font-bold text-white mb-4">🎯 Journey Complete!</h3>
+                            <div class="grid grid-cols-3 gap-4 text-white">
+                                <div>
+                                    <div class="text-3xl font-bold">${update.chain.length}</div>
+                                    <div class="text-sm opacity-75 uppercase tracking-wide">Total Hops</div>
+                                </div>
+                                <div>
+                                    <div class="text-lg font-semibold">${update.chain[0].title}</div>
+                                    <div class="text-sm opacity-75 uppercase tracking-wide">Start</div>
+                                </div>
+                                <div>
+                                    <div class="text-lg font-semibold">${update.chain[update.chain.length - 1].title}</div>
+                                    <div class="text-sm opacity-75 uppercase tracking-wide">End</div>
+                                </div>
+                            </div>
+                            <p class="mt-4 text-white opacity-90 text-sm">${update.message}</p>
+                        </div>
+                    `;
+                    
+                } else if (update.type === 'error') {
+                    currentPage.innerHTML = `<div class="glass-strong rounded-xl p-4 text-white mt-3">${update.message}</div>`;
+                    status.classList.add('hidden');
+                }
+            });
+
+            startBtn.disabled = false;
+        });
+    </script>
+</body>
+</html>
 
     <script>
         const MAX_HOPS = 100;
@@ -594,7 +1203,7 @@
                             onUpdate({ 
                                 type: 'complete', 
                                 chain: this.chain,
-                                message: `✓ Reached a dead end at "${currentTitle}" (no more valid links found)` 
+                                message: `✓ Reached a dead end at "${currentTitle}"` 
                             });
                             break;
                         }
@@ -606,7 +1215,7 @@
                         console.error('Crawl error:', error);
                         onUpdate({ 
                             type: 'error', 
-                            message: `Error fetching "${currentTitle}": ${error.message}. The page may not exist or there was a network issue.` 
+                            message: `Error fetching "${currentTitle}": ${error.message}` 
                         });
                         break;
                     }
@@ -616,109 +1225,8 @@
                     onUpdate({ 
                         type: 'complete', 
                         chain: this.chain,
-                        message: `Stopped after ${MAX_HOPS} hops (maximum limit reached)` 
+                        message: `Stopped after ${MAX_HOPS} hops` 
                     });
                 }
             }
         }
-
-        // UI Controller
-        const startBtn = document.getElementById('startBtn');
-        const languageSelect = document.getElementById('language');
-        const startPageInput = document.getElementById('startPage');
-        const status = document.getElementById('status');
-        const statusText = document.getElementById('statusText');
-        const currentPage = document.getElementById('currentPage');
-        const chainDiv = document.getElementById('chain');
-        const chainItems = document.getElementById('chainItems');
-
-        startBtn.addEventListener('click', async () => {
-            const language = languageSelect.value;
-            const startPage = startPageInput.value.trim();
-
-            if (!startPage) {
-                alert('Please enter a starting page name');
-                return;
-            }
-
-            startBtn.disabled = true;
-            status.classList.add('active');
-            chainDiv.style.display = 'none';
-            chainItems.innerHTML = '';
-            document.getElementById('summary').style.display = 'none';
-            document.getElementById('summary').innerHTML = '';
-            statusText.textContent = 'Starting crawl...';
-            currentPage.innerHTML = '';
-
-            const crawler = new WikiCrawler(language);
-
-            await crawler.crawl(startPage, (update) => {
-                if (update.type === 'progress') {
-                    statusText.textContent = `Crawling... (${update.chain.length} pages visited)`;
-                    currentPage.innerHTML = `Current: <strong>${update.current}</strong>`;
-                    
-                    chainDiv.style.display = 'block';
-                    const items = update.chain.map((item, index) => {
-                        const isCurrent = index === update.chain.length - 1;
-                        const delay = Math.min(index * 0.05, 2);
-                        return `
-                            <div class="chain-item ${isCurrent ? 'current' : ''}" 
-                                 data-index="${index + 1}"
-                                 style="animation-delay: ${delay}s">
-                                <div class="chain-content">
-                                    <a href="${item.url}" target="_blank">${item.title}</a>
-                                </div>
-                            </div>
-                            ${index < update.chain.length - 1 ? '<div class="chain-arrow" style="animation-delay: ' + (delay + 0.1) + 's">↓</div>' : ''}
-                        `;
-                    }).join('');
-                    
-                    chainItems.innerHTML = items;
-                    
-                    setTimeout(() => {
-                        chainItems.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    }, 100);
-                    
-                } else if (update.type === 'complete') {
-                    status.classList.remove('active');
-                    
-                    const lastItem = chainItems.querySelector('.chain-item:last-of-type');
-                    if (lastItem) {
-                        lastItem.classList.remove('current');
-                        lastItem.classList.add('final');
-                    }
-
-                    const summaryDiv = document.getElementById('summary');
-                    summaryDiv.style.display = 'block';
-                    summaryDiv.innerHTML = `
-                        <div class="summary">
-                            <h3>🎯 Journey Complete!</h3>
-                            <div class="stats">
-                                <div class="stat">
-                                    <span class="stat-value">${update.chain.length}</span>
-                                    <span class="stat-label">Total Hops</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-value">${update.chain[0].title}</span>
-                                    <span class="stat-label">Starting Point</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-value">${update.chain[update.chain.length - 1].title}</span>
-                                    <span class="stat-label">Final Destination</span>
-                                </div>
-                            </div>
-                            <p style="margin-top: 16px; color: var(--text-muted);">${update.message}</p>
-                        </div>
-                    `;
-                    
-                } else if (update.type === 'error') {
-                    currentPage.innerHTML = `<div class="error">${update.message}</div>`;
-                    status.classList.remove('active');
-                }
-            });
-
-            startBtn.disabled = false;
-        });
-    </script>
-</body>
-</html>
