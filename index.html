@@ -436,10 +436,24 @@
                         
                         if (!href || !href.startsWith('./')) continue;
                         
+                        // Check for red links BEFORE processing
+                        // Red links look like: ./PageName?action=edit&redlink=1
+                        if (href.includes('?action=edit') || href.includes('redlink=1')) {
+                            console.log(`Skipping red link: ${href}`);
+                            continue;
+                        }
+                        
                         href = href.substring(2);
                         
+                        // Remove anchor
                         if (href.includes('#')) {
                             href = href.substring(0, href.indexOf('#'));
+                        }
+                        
+                        // Remove any remaining query parameters
+                        if (href.includes('?')) {
+                            console.log(`Removing query params from: ${href}`);
+                            href = href.substring(0, href.indexOf('?'));
                         }
                         
                         const title = decodeURIComponent(href).replace(/_/g, ' ');
