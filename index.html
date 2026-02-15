@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikipedia Link Crawler</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #f8f9fa;
+            --surface: #ffffff;
+            --text: #202122;
+            --text-muted: #54595d;
+            --accent: #3366cc;
+            --border: #a2a9b1;
+            --success: #14866d;
+            --error: #d33;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Lato, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .controls {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #2952a3;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status.active {
+            display: block;
+        }
+
+        .status-text {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e8eaed;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .chain {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .chain-item {
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            background: var(--bg);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+            transition: all 0.3s;
+            animation: fadeInSlide 0.5s ease-out backwards;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        @keyframes fadeInSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .chain-item::before {
+            content: attr(data-index);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            height: 32px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .chain-item.current {
+            background: linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%);
+            border-left-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(51, 102, 204, 0.15);
+            transform: scale(1.02);
+        }
+
+        .chain-item.current::before {
+            animation: pulse-ring 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-ring {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(51, 102, 204, 0.4);
+            }
+            50% { 
+                box-shadow: 0 0 0 8px rgba(51, 102, 204, 0);
+            }
+        }
+
+        .chain-item.final {
+            border-left-color: var(--success);
+            background: linear-gradient(135deg, #e6f4f1 0%, #f0f8f4 100%);
+            box-shadow: 0 4px 12px rgba(20, 134, 109, 0.15);
+        }
+
+        .chain-item.final::before {
+            background: var(--success);
+            content: "✓";
+            font-size: 1rem;
+        }
+
+        .chain-content {
+            flex: 1;
+        }
+
+        .chain-item a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1rem;
+            display: block;
+            transition: color 0.2s;
+        }
+
+        .chain-item a:hover {
+            color: #2952a3;
+            text-decoration: underline;
+        }
+
+        .chain-arrow {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            margin: 8px 0;
+            animation: fadeIn 0.4s ease-out backwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .error {
+            background: #fee;
+            color: var(--error);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid var(--error);
+        }
+
+        .info {
+            background: #e8f4f8;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .summary {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e8eaed 100%);
+            padding: 24px;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: center;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .summary h3 {
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .stats {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Wikipedia Link Crawler</h1>
+            <p class="subtitle">Follow the first link until you reach a dead end</p>
+        </header>
+
+        <div class="warning">
+            <strong>⚠️ Note:</strong> This tool uses Wikipedia's mobile site to avoid CORS issues. It works best when hosted on a web server (like GitHub Pages). Some browsers may still block requests when running from a local file.
+        </div>
+
+        <div class="controls">
+            <div class="input-group">
+                <label for="language">Wikipedia Language</label>
+                <select id="language">
+                    <option value="en">English (en)</option>
+                    <option value="de">Deutsch (de)</option>
+                    <option value="fr">Français (fr)</option>
+                    <option value="es">Español (es)</option>
+                    <option value="it">Italiano (it)</option>
+                    <option value="ja">日本語 (ja)</option>
+                    <option value="zh">中文 (zh)</option>
+                    <option value="ru">Русский (ru)</option>
+                    <option value="pt">Português (pt)</option>
+                    <option value="nl">Nederlands (nl)</option>
+                    <option value="pl">Polski (pl)</option>
+                    <option value="sv">Svenska (sv)</option>
+                    <option value="ar">العربية (ar)</option>
+                    <option value="uk">Українська (uk)</option>
+                    <option value="fa">فارسی (fa)</option>
+                    <option value="vi">Tiếng Việt (vi)</option>
+                    <option value="id">Bahasa Indonesia (id)</option>
+                    <option value="he">עברית (he)</option>
+                    <option value="ko">한국어 (ko)</option>
+                    <option value="cs">Čeština (cs)</option>
+                    <option value="fi">Suomi (fi)</option>
+                    <option value="hu">Magyar (hu)</option>
+                    <option value="no">Norsk (no)</option>
+                    <option value="da">Dansk (da)</option>
+                    <option value="ro">Română (ro)</option>
+                    <option value="tr">Türkçe (tr)</option>
+                    <option value="el">Ελληνικά (el)</option>
+                    <option value="bg">Български (bg)</option>
+                    <option value="ca">Català (ca)</option>
+                    <option value="sr">Српски (sr)</option>
+                    <option value="ms">Bahasa Melayu (ms)</option>
+                    <option value="th">ไทย (th)</option>
+                    <option value="hi">हिन्दी (hi)</option>
+                    <option value="bn">বাংলা (bn)</option>
+                    <option value="sk">Slovenčina (sk)</option>
+                    <option value="eu">Euskara (eu)</option>
+                    <option value="sl">Slovenščina (sl)</option>
+                    <option value="hr">Hrvatski (hr)</option>
+                    <option value="lt">Lietuvių (lt)</option>
+                    <option value="et">Eesti (et)</option>
+                    <option value="la">Latina (la)</option>
+                    <option value="sq">Shqip (sq)</option>
+                    <option value="simple">Simple English (simple)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="startPage">Starting Page (required)</label>
+                <input type="text" id="startPage" placeholder="e.g., Philosophy, Berlin, Science" required>
+            </div>
+
+            <button class="btn" id="startBtn">Start Crawling</button>
+        </div>
+
+        <div class="status" id="status">
+            <div class="status-text" id="statusText">Crawling...</div>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div id="currentPage"></div>
+        </div>
+
+        <div class="chain" id="chain" style="display: none;">
+            <h2 style="margin-bottom: 20px;">Link Chain</h2>
+            <div id="chainItems"></div>
+            <div id="summary" style="display: none;"></div>
+        </div>
+
+        <div class="info">
+            <strong>How it works:</strong> This tool starts from a Wikipedia page and follows the first valid link in the main content until it reaches a page with no outgoing links (a "dead end"). Valid links are those within the main article content, excluding parenthetical links, italicized text, and special pages.
+            <br><br>
+            <strong>Popular starting pages:</strong>
+            <ul style="margin-top: 10px; margin-left: 20px;">
+                <li><strong>English:</strong> Philosophy, Science, Mathematics, History</li>
+                <li><strong>Deutsch:</strong> Philosophie, Deutschland, Wissenschaft</li>
+                <li><strong>Français:</strong> Philosophie, France, Science</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const MAX_HOPS = 100;
+
+        class WikiCrawler {
+            constructor(language) {
+                this.language = language;
+                this.visited = new Set();
+                this.chain = [];
+            }
+
+            getWikiUrl(title) {
+                return `https://${this.language}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`;
+            }
+
+            getMobileUrl(title) {
+                return `https://${this.language}.m.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`;
+            }
+
+            async fetchPage(title) {
+                // Use CORS proxy for fetching HTML
+                const url = this.getMobileUrl(title);
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+                
+                try {
+                    const response = await fetch(proxyUrl);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    const html = await response.text();
+                    return html;
+                } catch (error) {
+                    console.error(`Failed to fetch ${title}:`, error);
+                    throw error;
+                }
+            }
+
+            parseHtml(html) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Get main content from mobile Wikipedia
+                const content = doc.querySelector('#mw-content-text, .mw-parser-output, #content');
+                if (!content) {
+                    console.log('No content found in page');
+                    return null;
+                }
+
+                // Remove unwanted elements
+                const unwantedSelectors = [
+                    '.reference',
+                    '.mw-editsection',
+                    'table',
+                    '.infobox',
+                    '.navbox',
+                    '.sidebar',
+                    '.toc',
+                    '.thumbcaption',
+                    'sup',
+                    '.noprint',
+                    '.metadata',
+                    'style',
+                    'script',
+                    '.hatnote'
+                ];
+                
+                unwantedSelectors.forEach(selector => {
+                    content.querySelectorAll(selector).forEach(el => el.remove());
+                });
+
+                // Find first valid link in paragraphs
+                const paragraphs = Array.from(content.querySelectorAll('p'));
+                
+                for (const p of paragraphs) {
+                    const textContent = p.textContent.trim();
+                    if (textContent.length < 20) continue;
+
+                    const links = Array.from(p.querySelectorAll('a[href*="/wiki/"]'));
+                    
+                    for (const link of links) {
+                        let href = link.getAttribute('href');
+                        
+                        // Handle relative URLs
+                        if (href.startsWith('/wiki/')) {
+                            href = href.substring(6);
+                        } else if (href.includes('/wiki/')) {
+                            href = href.substring(href.indexOf('/wiki/') + 6);
+                        } else {
+                            continue;
+                        }
+                        
+                        // Remove anchor
+                        if (href.includes('#')) {
+                            href = href.substring(0, href.indexOf('#'));
+                        }
+                        
+                        const title = decodeURIComponent(href).replace(/_/g, ' ');
+                        
+                        // Skip special pages
+                        if (title.match(/^(File|Image|Special|Wikipedia|Help|Template|Category|Portal|Talk|User|Project):/i)) {
+                            continue;
+                        }
+                        
+                        // Skip if contains colon (namespace)
+                        if (title.includes(':')) continue;
+                        
+                        // Skip empty or very short
+                        if (title.length < 2) continue;
+
+                        // Check if link is in italics
+                        if (link.closest('i') || link.closest('em')) continue;
+
+                        // Check if link is within parentheses
+                        const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT, null);
+                        let textBeforeLink = '';
+                        let foundLink = false;
+                        
+                        while (walker.nextNode()) {
+                            const node = walker.currentNode;
+                            if (link.contains(node) || link === node.parentElement) {
+                                foundLink = true;
+                                break;
+                            }
+                            textBeforeLink += node.textContent;
+                        }
+
+                        if (foundLink) {
+                            const openParens = (textBeforeLink.match(/\(/g) || []).length;
+                            const closeParens = (textBeforeLink.match(/\)/g) || []).length;
+                            if (openParens > closeParens) continue;
+                        }
+
+                        console.log(`Found valid link: ${title}`);
+                        return title;
+                    }
+                }
+
+                return null;
+            }
+
+            async crawl(startTitle, onUpdate) {
+                let currentTitle = startTitle;
+                this.chain = [];
+                this.visited.clear();
+
+                while (currentTitle && this.chain.length < MAX_HOPS) {
+                    if (this.visited.has(currentTitle.toLowerCase())) {
+                        onUpdate({ 
+                            type: 'error', 
+                            message: `Loop detected at "${currentTitle}"` 
+                        });
+                        break;
+                    }
+
+                    this.visited.add(currentTitle.toLowerCase());
+                    this.chain.push({ title: currentTitle, url: this.getWikiUrl(currentTitle) });
+
+                    onUpdate({ 
+                        type: 'progress', 
+                        current: currentTitle, 
+                        chain: [...this.chain] 
+                    });
+
+                    try {
+                        const html = await this.fetchPage(currentTitle);
+                        const nextTitle = this.parseHtml(html);
+
+                        console.log(`From "${currentTitle}" -> found: "${nextTitle}"`);
+
+                        if (!nextTitle) {
+                            onUpdate({ 
+                                type: 'complete', 
+                                chain: this.chain,
+                                message: `✓ Reached a dead end at "${currentTitle}" (no more valid links found)` 
+                            });
+                            break;
+                        }
+
+                        currentTitle = nextTitle;
+                        await new Promise(resolve => setTimeout(resolve, 600));
+
+                    } catch (error) {
+                        console.error('Crawl error:', error);
+                        onUpdate({ 
+                            type: 'error', 
+                            message: `Error fetching "${currentTitle}": ${error.message}. The page may not exist or there was a network issue.` 
+                        });
+                        break;
+                    }
+                }
+
+                if (this.chain.length >= MAX_HOPS) {
+                    onUpdate({ 
+                        type: 'complete', 
+                        chain: this.chain,
+                        message: `Stopped after ${MAX_HOPS} hops (maximum limit reached)` 
+                    });
+                }
+            }
+        }
+
+        // UI Controller
+        const startBtn = document.getElementById('startBtn');
+        const languageSelect = document.getElementById('language');
+        const startPageInput = document.getElementById('startPage');
+        const status = document.getElementById('status');
+        const statusText = document.getElementById('statusText');
+        const currentPage = document.getElementById('currentPage');
+        const chainDiv = document.getElementById('chain');
+        const chainItems = document.getElementById('chainItems');
+
+        startBtn.addEventListener('click', async () => {
+            const language = languageSelect.value;
+            const startPage = startPageInput.value.trim();
+
+            if (!startPage) {
+                alert('Please enter a starting page name');
+                return;
+            }
+
+            startBtn.disabled = true;
+            status.classList.add('active');
+            chainDiv.style.display = 'none';
+            chainItems.innerHTML = '';
+            document.getElementById('summary').style.display = 'none';
+            document.getElementById('summary').innerHTML = '';
+            statusText.textContent = 'Starting crawl...';
+            currentPage.innerHTML = '';
+
+            const crawler = new WikiCrawler(language);
+
+            await crawler.crawl(startPage, (update) => {
+                if (update.type === 'progress') {
+                    statusText.textContent = `Crawling... (${update.chain.length} pages visited)`;
+                    currentPage.innerHTML = `Current: <strong>${update.current}</strong>`;
+                    
+                    chainDiv.style.display = 'block';
+                    const items = update.chain.map((item, index) => {
+                        const isCurrent = index === update.chain.length - 1;
+                        const delay = Math.min(index * 0.05, 2);
+                        return `
+                            <div class="chain-item ${isCurrent ? 'current' : ''}" 
+                                 data-index="${index + 1}"
+                                 style="animation-delay: ${delay}s">
+                                <div class="chain-content">
+                                    <a href="${item.url}" target="_blank">${item.title}</a>
+                                </div>
+                            </div>
+                            ${index < update.chain.length - 1 ? '<div class="chain-arrow" style="animation-delay: ' + (delay + 0.1) + 's">↓</div>' : ''}
+                        `;
+                    }).join('');
+                    
+                    chainItems.innerHTML = items;
+                    
+                    setTimeout(() => {
+                        chainItems.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 100);
+                    
+                } else if (update.type === 'complete') {
+                    status.classList.remove('active');
+                    
+                    const lastItem = chainItems.querySelector('.chain-item:last-of-type');
+                    if (lastItem) {
+                        lastItem.classList.remove('current');
+                        lastItem.classList.add('final');
+                    }
+
+                    const summaryDiv = document.getElementById('summary');
+                    summaryDiv.style.display = 'block';
+                    summaryDiv.innerHTML = `
+                        <div class="summary">
+                            <h3>🎯 Journey Complete!</h3>
+                            <div class="stats">
+                                <div class="stat">
+                                    <span class="stat-value">${update.chain.length}</span>
+                                    <span class="stat-label">Total Hops</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">${update.chain[0].title}</span>
+                                    <span class="stat-label">Starting Point</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">${update.chain[update.chain.length - 1].title}</span>
+                                    <span class="stat-label">Final Destination</span>
+                                </div>
+                            </div>
+                            <p style="margin-top: 16px; color: var(--text-muted);">${update.message}</p>
+                        </div>
+                    `;
+                    
+                } else if (update.type === 'error') {
+                    currentPage.innerHTML = `<div class="error">${update.message}</div>`;
+                    status.classList.remove('active');
+                }
+            });
+
+            startBtn.disabled = false;
+        });
+    </script>
+</body>
+</html>
