@@ -336,7 +336,7 @@
         </header>
 
         <div class="warning">
-            <strong>⚠️ Note:</strong> This tool uses Wikipedia's mobile site to avoid CORS issues. It works best when hosted on a web server (like GitHub Pages). Some browsers may still block requests when running from a local file.
+            <strong>✅ Using Wikipedia REST API:</strong> This tool now uses Wikipedia's official REST API which has proper CORS support and should work reliably on GitHub Pages and modern browsers.
         </div>
 
         <div class="controls">
@@ -437,20 +437,26 @@
                 return `https://${this.language}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`;
             }
 
-            getMobileUrl(title) {
-                return `https://${this.language}.m.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`;
+            getRestApiUrl(title) {
+                // Wikipedia REST API has proper CORS headers
+                return `https://${this.language}.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(title.replace(/ /g, '_'))}`;
             }
 
             async fetchPage(title) {
-                // Use CORS proxy for fetching HTML
-                const url = this.getMobileUrl(title);
-                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-                
                 try {
-                    const response = await fetch(proxyUrl);
+                    const response = await fetch(this.getRestApiUrl(title), {
+                        headers: {
+                            'Api-User-Agent': 'WikiCrawler/1.0 (Educational Tool)'
+                        }
+                    });
+                    
                     if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('Page not found');
+                        }
                         throw new Error(`HTTP ${response.status}`);
                     }
+                    
                     const html = await response.text();
                     return html;
                 } catch (error) {
@@ -463,8 +469,8 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 
-                // Get main content from mobile Wikipedia
-                const content = doc.querySelector('#mw-content-text, .mw-parser-output, #content');
+                // Get main content
+                const content = doc.querySelector('body');
                 if (!content) {
                     console.log('No content found in page');
                     return null;
@@ -472,20 +478,17 @@
 
                 // Remove unwanted elements
                 const unwantedSelectors = [
-                    '.reference',
-                    '.mw-editsection',
-                    'table',
-                    '.infobox',
-                    '.navbox',
-                    '.sidebar',
-                    '.toc',
-                    '.thumbcaption',
-                    'sup',
-                    '.noprint',
-                    '.metadata',
+                    '[rel="mw:PageProp/Category"]',
+                    'link',
+                    'meta',
                     'style',
                     'script',
-                    '.hatnote'
+                    'table',
+                    'figure',
+                    '[typeof="mw:Extension/references"]',
+                    '.mw-ref',
+                    'sup.reference',
+                    '[role="note"]'
                 ];
                 
                 unwantedSelectors.forEach(selector => {
@@ -499,19 +502,15 @@
                     const textContent = p.textContent.trim();
                     if (textContent.length < 20) continue;
 
-                    const links = Array.from(p.querySelectorAll('a[href*="/wiki/"]'));
+                    const links = Array.from(p.querySelectorAll('a[rel="mw:WikiLink"]'));
                     
                     for (const link of links) {
                         let href = link.getAttribute('href');
                         
-                        // Handle relative URLs
-                        if (href.startsWith('/wiki/')) {
-                            href = href.substring(6);
-                        } else if (href.includes('/wiki/')) {
-                            href = href.substring(href.indexOf('/wiki/') + 6);
-                        } else {
-                            continue;
-                        }
+                        if (!href || !href.startsWith('./')) continue;
+                        
+                        // Remove ./ prefix
+                        href = href.substring(2);
                         
                         // Remove anchor
                         if (href.includes('#')) {
@@ -521,7 +520,7 @@
                         const title = decodeURIComponent(href).replace(/_/g, ' ');
                         
                         // Skip special pages
-                        if (title.match(/^(File|Image|Special|Wikipedia|Help|Template|Category|Portal|Talk|User|Project):/i)) {
+                        if (title.match(/^(File|Image|Special|Wikipedia|Help|Template|Category|Portal|Talk|User|Project|Module|MediaWiki|TimedText):/i)) {
                             continue;
                         }
                         
@@ -601,7 +600,7 @@
                         }
 
                         currentTitle = nextTitle;
-                        await new Promise(resolve => setTimeout(resolve, 600));
+                        await new Promise(resolve => setTimeout(resolve, 500));
 
                     } catch (error) {
                         console.error('Crawl error:', error);
