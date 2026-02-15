@@ -458,6 +458,12 @@
                         
                         const title = decodeURIComponent(href).replace(/_/g, ' ');
                         
+                        // Skip if we've already visited this page (prevents loops)
+                        if (this.visited.has(title.toLowerCase())) {
+                            console.log(`Skipping already visited page: ${title}`);
+                            continue;
+                        }
+                        
                         if (title.match(/^(File|Image|Special|Wikipedia|Help|Template|Category|Portal|Talk|User|Project|Module|MediaWiki|TimedText):/i)) {
                             continue;
                         }
